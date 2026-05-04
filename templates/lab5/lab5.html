@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Лабораторна 5: DSS{% endblock %}
+
+{% block content %}
+
+
+<h2>Цифровий підпис DSS (DSA)</h2>
+
+<!-- Блок повідомлень -->
+{% if success_msg %}
+    <div class="alert alert-success">{{ success_msg }}</div>
+{% endif %}
+{% if error_msg %}
+    <div class="alert alert-danger">{{ error_msg }}</div>
+{% endif %}
+
+<!-- 1. Ключі -->
+<div class="section-title">1. Керування ключами</div>
+<form method="POST">
+    <button type="submit" name="action" value="generate_keys">Згенерувати ключі (DSA 2048-bit)</button>
+</form>
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+    <a href="/download/dsa_public.pem" class="menu-btn btn-secondary" style="margin:0;">Завантажити Public Key</a>
+    <a href="/download/dsa_private.pem" class="menu-btn btn-secondary" style="margin:0;">Завантажити Private Key</a>
+</div>
+
+<!-- 2. Робота з текстом -->
+<div class="section-title">2. Підпис рядка тексту</div>
+<form method="POST">
+    <label>Текст:</label>
+    <textarea name="text_input" rows="3" placeholder="Введіть текст сюди...">{{ text_input or '' }}</textarea>
+    
+    <label>HEX Підпис (r та s):</label>
+    <textarea name="signature_input" rows="3" placeholder="Підпис з'явиться тут або вставте його для перевірки">{{ signature_input or '' }}</textarea>
+    
+    <div style="display: flex; gap: 10px;">
+        <button type="submit" name="action" value="sign_text" style="margin:0;">Підписати</button>
+        <button type="submit" name="action" value="verify_text" class="btn-secondary" style="margin:0;">Перевірити підпис</button>
+    </div>
+</form>
+
+{% if valid_text is not none %}
+    <div class="results {% if valid_text == False %}results-error{% endif %}">
+        <strong>Результат перевірки тексту:</strong> 
+        {% if valid_text %}
+            ✅ Підпис коректний! Цілісність підтверджено.
+        {% else %}
+            ❌ Підпис НЕ дійсний! Дані або підпис змінено.
+        {% endif %}
+    </div>
+{% endif %}
+
+<!-- 3. Робота з файлами -->
+<div class="section-title">3. Підпис файлів</div>
+<form method="POST" enctype="multipart/form-data">
+    <label>Оберіть файл для підпису:</label>
+    <input type="file" name="file_input" required style="margin-bottom: 15px; display: block;">
+    <button type="submit" name="action" value="sign_file">Підписати файл</button>
+</form>
+
+{% if ready_file %}
+    <div class="results">
+        <p>Файл підпису успішно згенеровано (.sig).</p>
+        <a href="/download/{{ ready_file }}" class="menu-btn download-btn">Завантажити файл підпису</a>
+    </div>
+{% endif %}
+
+<div class="section-title">4. Перевірка підпису файлу</div>
+<form method="POST" enctype="multipart/form-data">
+    <label>Оригінальний файл:</label>
+    <input type="file" name="file_input" required style="margin-bottom: 10px; display: block;">
+    
+    <label>Файл підпису (.sig):</label>
+    <input type="file" name="sig_file_input" required style="margin-bottom: 15px; display: block;">
+    
+    <button type="submit" name="action" value="verify_file" class="btn-secondary">Перевірити файл</button>
+</form>
+
+{% if valid_file is not none %}
+    <div class="results {% if valid_file == False %}results-error{% endif %}">
+        <strong>Результат перевірки файлу:</strong> 
+        {% if valid_file %}
+            ✅ Підпис коректний! Файл оригінальний.
+        {% else %}
+            ❌ Підпис НЕ дійсний! Файл було змінено.
+        {% endif %}
+    </div>
+{% endif %}
+
+{% endblock %}
